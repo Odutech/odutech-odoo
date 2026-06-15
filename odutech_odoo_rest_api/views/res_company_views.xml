@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<o_doo>
+    <record id="view_company_form_inherit_subscription" model="ir.ui.view">
+        <name>res.company.form.inherit.subscription</name>
+        <model>res.company</model>
+        <inherit_id ref="base.view_company_form"/>
+        <arch type="xml">
+            <xpath expr="//field[@name='website']" position="after">
+                <field name="subscription_code"/>
+                <field name="api_authorization_tier"/>
+                <field name="subscription_status"/>
+                <field name="api_tier_expiration_date"
+                       invisible="api_authorization_tier != 'trial'"/>
+            </xpath>
+        </arch>
+    </record>
+</o_doo>

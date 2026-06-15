@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_eyekei_root_main" name="EYEKEI" web_icon="eyekei_eyewear,static/description/icon.png"
+        sequence="1" />
+    <!-- Patients -->
+    <menuitem id="menu_patient_root" name="Patients" parent="menu_eyekei_root_main" sequence="1" />
+    <menuitem id="menu_patient_list" name="All Patients" parent="menu_patient_root" action="action_patient_list"
+        sequence="1" />
+    <!-- Visits -->
+    <menuitem id="menu_visit_root" name="Visits" parent="menu_eyekei_root_main" sequence="2" />
+    <menuitem id="menu_visit_list" name="All Visits" parent="menu_visit_root" action="action_patient_visit_list"
+        sequence="1" />
+    <menuitem id="menu_today_visits" name="Today's Visits" parent="menu_visit_root" action="action_today_visits"
+        sequence="2" />
+    <!-- Prescriptions -->
+    <menuitem id="menu_prescription_root" name="Prescriptions" parent="menu_eyekei_root_main" sequence="3" 
+    groups="eyekei_eyewear.group_eyekei_manager,eyekei_eyewear.group_eyekei_optometrist,eyekei_eyewear.group_eyekei_admin" />
+    <menuitem id="menu_prescription_list" name="All Prescriptions" parent="menu_prescription_root"
+        action="action_prescription_list" 
+    groups="eyekei_eyewear.group_eyekei_manager,eyekei_eyewear.group_eyekei_optometrist,eyekei_eyewear.group_eyekei_admin"/>
+    <!-- Optometrist Dashboard -->
+    <menuitem id="menu_optometrist_dashboard" name="Optometrist Dashboard" parent="menu_eyekei_root_main"
+        action="action_optometrist_dashboard" sequence="4" groups="eyekei_eyewear.group_eyekei_optometrist" />
+    <!-- Lab & Workshop -->
+    <menuitem id="menu_lab_root" name="Lab &amp; Workshop" parent="menu_eyekei_root_main" sequence="5" />
+    <menuitem id="menu_lab_dashboard" name="Lab Dashboard" parent="menu_lab_root" action="action_lab_dashboard"
+        sequence="1" />
+    <menuitem id="menu_lab_jobs" name="All Jobs" parent="menu_lab_root" action="action_lab_dashboard" sequence="2" />
+    <menuitem id="menu_lab_reports" name="Reports" parent="menu_lab_root" sequence="3" />
+    <menuitem id="menu_lab_consumption" name="Daily Consumption" parent="menu_lab_reports"
+        action="action_lab_daily_consumption" />
+    <!-- Insurance  -->
+    <menuitem id="menu_insurance_company" name="Insurance" parent="menu_eyekei_root_main" sequence="6"
+        groups="eyekei_eyewear.group_eyekei_manager,eyekei_eyewear.group_eyekei_reception,eyekei_eyewear.group_eyekei_admin" />
+    <menuitem id="menu_insurance_companies" name="Insurance Companies" parent="menu_insurance_company"
+        action="action_insurance_company" sequence="10" />
+    <menuitem id="menu_insurance_claims" name="Insurance Claims" parent="menu_insurance_company"
+        action="action_insurance_claims" sequence="20" />
+    <!-- Vendors -->
+    <menuitem id="menu_external_vendors_root" name="Vendors" parent="menu_lab_root" sequence="7" />
+    <menuitem id="menu_optical_vendors" name="Manage Vendors" parent="menu_external_vendors_root"
+        action="action_optical_vendor_partners" sequence="1" />
+    <menuitem id="menu_vendor_performance" name="Vendor Performance" parent="menu_external_vendors_root"
+        action="action_optical_vendor_partners" sequence="2" />
+    <!-- Remake -->
+    <menuitem id="menu_remake_root" name="Quality Control" parent="menu_eyekei_root_main" sequence="8" />
+    <menuitem id="menu_remake_orders" name="Remake Orders" parent="menu_remake_root" action="action_remake_order_list"
+        sequence="1" />
+    <menuitem id="menu_clinical_errors" name="Clinical Error Report" parent="menu_remake_root"
+        action="action_clinical_error_report" sequence="2" />
+    <!-- Optical Products -->
+    <menuitem id="menu_optical_products" name="Optical Catalog" parent="menu_eyekei_root_main" sequence="9"
+        action="action_optical_products" />
+    <!-- CEO Dashboard -->
+    <menuitem id="menu_ceo_dashboard" name="CEO Dashboard" parent="menu_eyekei_root_main" action="action_ceo_dashboard"
+        groups="eyekei_eyewear.group_eyekei_admin" sequence="10" />
+    <!-- Inventory -->
+    <menuitem id="menu_stock_root" name="Stock" parent="menu_eyekei_root_main" sequence="11" groups="eyekei_eyewear.group_eyekei_manager"/>
+    <menuitem id="menu_stock_update_wizard" name="Quick Stock Update" parent="menu_stock_root"
+        action="action_stock_update_wizard" sequence="1"
+        groups="eyekei_eyewear.group_eyekei_manager,eyekei_eyewear.group_eyekei_reception" />
+    <menuitem id="menu_stock_audit_log" name="Adjustment History" parent="menu_stock_root"
+        action="action_stock_audit_log" sequence="2" groups="eyekei_eyewear.group_eyekei_manager" />
+    <menuitem id="menu_optical_locations"
+                  name="Optical Locations"
+                  parent="menu_stock_root"
+                  action="action_optical_locations"
+                  sequence="3"
+                  groups="eyekei_eyewear.group_eyekei_manager"/>
+
+</odoo>

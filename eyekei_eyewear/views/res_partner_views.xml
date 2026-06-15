@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================ -->
+    <!-- PATIENT FORM VIEW (Inherited from base) -->
+    <!-- ============================================ -->
+    <record id="view_patient_form" model="ir.ui.view">
+        <field name="name">res.partner.patient.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-warning" role="alert" invisible="not phone_duplicate_warning or not is_patient">
+                    <strong>⚠️ Duplicate Warning!</strong> This phone number or ID may already exist.
+                    <button name="find_duplicate_patients" string="Check Duplicates" type="object"
+                        class="btn btn-sm btn-warning ms-2" />
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='company_type']" position="after">
+                <field name="is_patient" invisible="1" />
+                <field name="patient_id" readonly="1" invisible="not is_patient" />
+            </xpath>
+
+            <!-- Hide Company / Parent -->
+            <xpath expr="//field[@name='parent_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide company name creation block -->
+            <xpath expr="//div[field[@name='company_name']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide address label -->
+            <xpath expr="//span[@name='address_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide address block -->
+            <xpath expr="//div[contains(@class, 'o_address_format')]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide function -->
+            <xpath expr="//field[@name='function']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide VAT -->
+            <xpath expr="//field[@name='vat']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide website -->
+            <xpath expr="//field[@name='website']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide language -->
+            <xpath expr="//field[@name='lang']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide tags/categories -->
+            <xpath expr="//field[@name='category_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Insert after the main two-column group block -->
+            <xpath expr="//sheet//group[group/field[@name='parent_id'] and group/field[@name='function']]"
+                position="after">
+                <group>
+                    <group string="Patient Information" invisible="not is_patient">
+                        <field name="date_of_birth" />
+                        <field name="gender" />
+                        <field name="place" placeholder="Town / Area" />
+                        <field name="id_number" />
+                        <field name="company_id" readonly="1" />
+                    </group>
+                    <group string="Insurance Details" invisible="not is_patient">
+                        <field name="insurance_provider_id" options="{'no_create': True, 'no_open': True}" />
+                        <field name="insurance_member_no" string="Member Number" />
+                        <field name="scheme_id" options="{'no_create': True, 'no_open': True}" />
+                    </group>
+                </group>
+            </xpath>
+
+            <xpath expr="//page[@name='contact_addresses']" position="before">
+                <page string="Visit History" invisible="not is_patient">
+                    <div class="oe_button_box">
+                        <button name="action_view_visits" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <field name="visit_count" widget="statinfo" string="Visits" />
+                        </button>
+                        <button type="object" class="oe_stat_button" icon="fa-clock-o">
+                            <field name="last_visit_date" widget="statinfo" string="Last Visit" />
+                        </button>
+                    </div>
+                    <field name="visit_ids" readonly="1">
+                        <list>
+                            <field name="name" />
+                            <field name="visit_date" />
+                            <field name="branch_id" />
+                            <field name="state" />
+                            <field name="total_amount" />
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!-- PATIENT list VIEW -->
+    <!-- ============================================ -->
+
+    <record id="view_partner_tree_inherit_custom" model="ir.ui.view">
+        <field name="name">res.partner.tree.inherit.custom</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree" />
+        <field name="arch" type="xml">
+            <!-- Hide country field from optional visible columns -->
+            <xpath expr="//field[@name='country_id']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='activity_ids']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+
+            <!-- Ensure company_id is visible in the list -->
+            <xpath expr="//field[@name='phone']" position="after">
+                <field name="id_number" readonly="1" optional="show" />
+                <field name="insurance_provider_id" optional="show"/>
+                <field name="last_visit_date" optional="show"/>
+                <field name="visit_count" optional="show"/>
+                <field name="company_id" readonly="1" optional="show" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_patient_list" model="ir.ui.view">
+        <field name="name">res.partner.patient.list</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="not active">
+                <field name="patient_id" />
+                <field name="name" />
+                <field name="phone" />
+                <field name="id_number" />
+                <field name="insurance_provider_id" />
+                <field name="last_visit_date" />
+                <field name="visit_count" />
+                <field name="company_id" />
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!-- PATIENT SEARCH VIEW -->
+    <!-- ============================================ -->
+    <record id="view_patient_search" model="ir.ui.view">
+        <field name="name">res.partner.patient.search</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id" string="Patient ID" />
+                <field name="name" string="Patient Name" />
+                <field name="phone" />
+                <field name="id_number" />
+                <field name="insurance_member_no" />
+                <field name="insurance_provider_id" />
+                <field name="company_id" />
+
+                <filter string="Patients" name="patients" domain="[('is_patient', '=', True)]" />
+                <filter string="Insurance Patients" name="insurance"
+                    domain="[('is_patient', '=', True), ('insurance_provider_id', '!=', False)]" />
+
+                <separator />
+
+                <filter string="Group by Branch" name="branch" context="{'group_by': 'company_id'}" />
+                <filter string="Group by Insurance Provider" name="group_insurance_provider"
+                    context="{'group_by': 'insurance_provider_id'}" />
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!-- PATIENT ACTION -->
+    <!-- ============================================ -->
+    <record id="action_patient_list" model="ir.actions.act_window">
+        <field name="name">Patients</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('is_patient', '=', True)]</field>
+        <field name="context">{'default_is_patient': True, 'search_default_patients': 1}</field>
+        <field name="search_view_id" ref="view_patient_search" />
+    </record>
+
+
+</odoo>

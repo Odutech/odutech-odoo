@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Partner Form: Add Optical Vendor tab -->
+        <record id="view_partner_form_optical_vendor" model="ir.ui.view">
+            <field name="name">res.partner.form.optical.vendor</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+
+                <!-- Add checkbox after company_name field -->
+                <xpath expr="//field[@name='company_name']" position="after">
+                    <field name="is_optical_vendor"
+                           widget="boolean_toggle"
+                           invisible="company_type != 'company'"
+                           options="{'autosave': True}"/>
+                </xpath>
+
+                <!-- Add Optical Lab Details tab -->
+                <xpath expr="//notebook" position="inside">
+                    <page string="Optical Lab Details"
+                          name="optical_vendor"
+                          invisible="not is_optical_vendor"
+                          groups="eyekei_eyewear.group_eyekei_manager">
+                        <group>
+                            <group>
+                                <field name="vendor_category" widget="radio"/>
+                                <field name="optical_rating" widget="radio"/>
+                                <field name="is_preferred_vendor"/>
+                                <field name="requires_approval"/>
+                            </group>
+                            <group>
+                                <field name="lab_coordinator_id"
+                                       context="{'default_parent_id': id, 'default_type': 'contact'}"/>
+                                <field name="average_turnaround_days" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <div class="o_horizontal_separator">Performance Statistics</div>
+
+                        <div class="row g-3 mb-3">
+                            <!-- Jobs Sent -->
+                            <div class="col-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h4><field name="optical_jobs_sent" readonly="1"/></h4>
+                                        <div>Jobs Sent</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Completed -->
+                            <div class="col-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h4><field name="optical_jobs_completed" readonly="1"/></h4>
+                                        <div>Completed</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!--
+                                FIX: t-att-class with record.X.raw_value is kanban-only syntax.
+                                In a form view, use two divs with invisible= to switch color.
+                            -->
+                            <!-- Remake Rate — danger when > 10% -->
+                            <div class="col-3">
+                                <div class="card bg-danger text-white"
+                                     invisible="optical_remake_rate &lt;= 10">
+                                    <div class="card-body text-center">
+                                        <h4>
+                                            <field name="optical_remake_rate" readonly="1"/>%
+                                        </h4>
+                                        <div>Remake Rate</div>
+                                    </div>
+                                </div>
+                                <div class="card bg-warning text-white"
+                                     invisible="optical_remake_rate &gt; 10">
+                                    <div class="card-body text-center">
+                                        <h4>
+                                            <field name="optical_remake_rate" readonly="1"/>%
+                                        </h4>
+                                        <div>Remake Rate</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Complaints -->
+                            <div class="col-3">
+                                <div class="card bg-secondary text-white">
+                                    <div class="card-body text-center">
+                                        <h4><field name="optical_complaint_count" readonly="1"/></h4>
+                                        <div>Complaints</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <group class="mt-4">
+                            <button name="action_view_optical_jobs"
+                                    string="View All Jobs"
+                                    type="object"
+                                    class="btn btn-primary"/>
+                            <button name="action_view_vendor_performance_report"
+                                    string="Performance Report"
+                                    type="object"
+                                    class="btn btn-secondary"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Optical Vendors List View -->
+        <record id="view_optical_vendor_list" model="ir.ui.view">
+            <field name="name">res.partner.optical.vendor.list</field>
+            <field name="model">res.partner</field>
+            <field name="arch" type="xml">
+                <list decoration-danger="optical_remake_rate > 10"
+                      decoration-success="optical_rating == '4'"
+                      decoration-warning="optical_rating == '2'">
+                    <field name="name"/>
+                    <field name="phone"/>
+                    <field name="email"/>
+                    <field name="city"/>
+                    <field name="optical_jobs_sent"/>
+                    <field name="optical_remake_rate"/>
+                    <field name="optical_rating"/>
+                    <field name="is_preferred_vendor" widget="boolean_toggle"/>
+                    <field name="requires_approval"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Search view for optical vendors -->
+        <!-- <record id="view_optical_vendor_search" model="ir.ui.view">
+            <field name="name">res.partner.optical.vendor.search</field>
+            <field name="model">res.partner</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="phone"/>
+                    <field name="email"/>
+                    <filter string="Optical Vendors" name="optical_vendors"
+                            domain="[('is_optical_vendor', '=', True)]"/>
+                    <filter string="Preferred Vendors" name="preferred"
+                            domain="[('is_preferred_vendor', '=', True)]"/>
+                    <filter string="Requires Approval" name="approval_required"
+                            domain="[('requires_approval', '=', True)]"/>
+                    <filter string="High Remake Rate" name="high_remake"
+                            domain="[('optical_remake_rate', '&gt;', 10)]"/>
+                    <separator/>
+                    <filter string="Suppliers" name="suppliers"
+                            domain="[('supplier_rank', '&gt;', 0)]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Rating" name="group_rating"
+                                context="{'group_by': 'optical_rating'}"/>
+                        <filter string="Category" name="group_category"
+                                context="{'group_by': 'vendor_category'}"/>
+                        <filter string="City" name="group_city"
+                                context="{'group_by': 'city'}"/>
+                    </group>
+                </search>
+            </field>
+        </record> -->
+
+        <!-- Action: Optical Vendors -->
+        <record id="action_optical_vendor_partners" model="ir.actions.act_window">
+            <field name="name">External Optical Labs</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('is_optical_vendor', '=', True)]</field>
+            <!-- <field name="search_view_id" ref="view_optical_vendor_search"/> -->
+            <field name="context">{
+                'default_is_optical_vendor': True,
+                'default_company_type': 'company',
+                'default_supplier_rank': 1,
+                'default_vendor_category': 'external_lab',
+                'search_default_optical_vendors': 1
+            }</field>
+        </record>
+
+        <!-- Action: All Suppliers -->
+        <record id="action_suppliers_with_vendor_flag" model="ir.actions.act_window">
+            <field name="name">Suppliers &amp; Vendors</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('supplier_rank', '&gt;', 0)]</field>
+            <field name="context">{'res_partner_search_mode': 'supplier', 'default_is_company': True}</field>
+        </record>
+
+    </data>
+</odoo>

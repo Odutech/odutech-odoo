@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="email_template_user_verification" model="mail.template">
+        <field name="name">User Registration: Email Verification</field>
+        <field name="model_id" ref="odutech_expense_manager.model_expense_user"/>
+        <field name="subject">Verify your email address</field>
+        <field name="email_from">{{ object.company_id.email }}</field>
+        <field name="partner_to">{{ object.partner_id.id }}</field>
+
+        <field name="body_html" type="html">
+            <div style="background-color: #f8f9fa; padding: 40px 20px; font-family: Segoe UI, Arial, sans-serif; color: #333333; line-height: 1.6;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+
+                    <!-- Header Banner -->
+                    <tr>
+                        <td align="center" style="background-color: #1a90ad; padding: 30px 20px;">
+                            <img t-attf-src="/logo.png?company={{ object.company_id.id }}"
+                                 alt="Company Logo"
+                                 style="max-height: 50px; display: block; border: none;"/>
+                        </td>
+                    </tr>
+
+                    <!-- Content Body -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="margin-top: 0; color: #222222; font-size: 24px; font-weight: 600;">
+                                Welcome, <t t-out="object.name or object.email"/>!
+                            </h2>
+                            <p style="color: #555555; font-size: 16px; margin-bottom: 24px;">
+                                Thank you for registering with us. To complete your signup process and secure your account, please use the verification code below:
+                            </p>
+
+                            <!-- Code Block Container -->
+                            <div style="background: #f1f3f5; padding: 20px; text-align: center; margin: 30px 0; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <span style="display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #6c757d; font-weight: bold; margin-bottom: 5px;">
+                                    Your Verification Code
+                                </span>
+                                <span style="font-family: Courier New, Courier, monospace; font-size: 32px; font-weight: bold; color: #1a90ad; letter-spacing: 6px;">
+                                    <t t-out="object.verification_code"/>
+                                </span>
+                            </div>
+
+                            <p style="color: #777777; font-size: 14px; background-color: #fff9db; padding: 10px 15px; border-left: 4px solid #fcc419; border-radius: 4px; margin-bottom: 30px;">
+                                <strong>Note:</strong> This code is valid for <strong>15 minutes</strong>. If you did not request this registration, you can safely ignore this email.
+                            </p>
+
+                            <!-- Call To Action Link -->
+                            <div style="text-align: center; margin-bottom: 10px;">
+                                <a t-att-href="object.company_id.expense_link or '/web/login'" style="background-color: #1a90ad; color: #ffffff; padding: 12px 28px; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 4px; display: inline-block; box-shadow: 0 4px 10px rgba(26, 144, 173, 0.25);">
+                                    Go to Login Page
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f1f3f5; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;">
+                            <p style="margin: 0 0 15px 0; font-size: 14px; color: #495057; font-weight: 600;">
+                                <t t-out="object.company_id.name"/>
+                            </p>
+                            <!-- Footer Links -->
+                            <p style="margin: 0; font-size: 13px;">
+                                <a t-att-href="object.company_id.website or '#'" style="color: #1a90ad; text-decoration: none; margin: 0 10px;">Website</a> |
+                                <a href="https://example.com/support" style="color: #1a90ad; text-decoration: none; margin: 0 10px;">Help &amp; Support</a> |
+                                <a href="https://example.com/privacy" style="color: #1a90ad; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+                            </p>
+                            <p style="margin: 15px 0 0 0; font-size: 11px; color: #868e96;">
+                                This is an automated message, please do not reply directly to this email.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="eyekei_eyewear.CEODashboard">
+        <div class="o_action o_ceo_dashboard">
+
+            <!-- Loading spinner -->
+            <div t-if="state.loading" class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+
+            <t t-else="">
+                <!-- Header / Filters -->
+                <div class="o_control_panel_main d-flex justify-content-between align-items-center p-3 bg-white border-bottom">
+                    <h3 class="mb-0 fw-bold">
+                        <i class="fa fa-tachometer me-2" title="CEO Dashboard"/>
+                        CEO Dashboard
+                    </h3>
+                    <div class="d-flex gap-3">
+                        <!-- Date Range Filter -->
+                        <select class="form-select form-select-sm"
+                                t-on-change="onDateRangeChange"
+                                style="width: 140px;">
+                            <option value="today" t-att-selected="state.dateRange === 'today' ? 'selected' : ''">Today</option>
+                            <option value="week"  t-att-selected="state.dateRange === 'week'  ? 'selected' : ''">This Week</option>
+                            <option value="month" t-att-selected="state.dateRange === 'month' ? 'selected' : ''">This Month</option>
+                            <option value="year"  t-att-selected="state.dateRange === 'year'  ? 'selected' : ''">This Year</option>
+                            <option value="custom" t-att-selected="state.dateRange === 'custom' ? 'selected' : ''" disabled="disabled" style="display:none;">Custom</option>
+                        </select>
+                        <!-- Custom Date Range Picker -->
+                        <div class="d-flex align-items-center gap-1">
+                            <input type="date"
+                                   class="form-control form-control-sm"
+                                   style="width: 145px;"
+                                   t-att-value="state.customDate"
+                                   t-att-max="new Date().toISOString().slice(0,10)"
+                                   t-on-change="onCustomDateChange"
+                                   title="From date"/>
+                            <span class="text-muted small" t-if="state.customDate">→</span>
+                            <input type="date"
+                                   class="form-control form-control-sm"
+                                   style="width: 145px;"
+                                   t-if="state.customDate"
+                                   t-att-value="state.customDateTo"
+                                   t-att-min="state.customDate"
+                                   t-att-max="new Date().toISOString().slice(0,10)"
+                                   t-on-change="onCustomDateToChange"
+                                   placeholder="To date"
+                                   title="To date (leave blank for single day)"/>
+                            <button t-if="state.customDate"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    t-on-click="clearCustomDate"
+                                    title="Clear date filter">
+                                <i class="fa fa-times" title="Clear"/>
+                            </button>
+                        </div>
+                        <!-- Refresh -->
+                        <button class="btn btn-sm btn-outline-secondary"
+                                t-on-click="loadDashboardData"
+                                title="Refresh">
+                            <i class="fa fa-refresh" title="Refresh"/>
+                        </button>
+                        <!-- Detailed Report -->
+                        <button class="btn btn-sm btn-primary"
+                                t-on-click="viewDetailedReport">
+                            <i class="fa fa-bar-chart me-1" title="Detailed Report"/>
+                            Detailed Report
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-4">
+
+                    <!-- ============================== -->
+                    <!-- ROW 1: Core Business KPIs -->
+                    <!-- ============================== -->
+                    <div class="row g-3 mb-4">
+                        <!-- Total Visits -->
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="card border-0 shadow-sm h-100 cursor-pointer"
+                                 t-on-click="viewVisits">
+                                <div class="card-body text-center">
+                                    <div class="text-muted small mb-1">Total Visits</div>
+                                    <div class="fs-2 fw-bold text-secondary">
+                                        <t t-esc="formatNumber(state.kpis.total_visits)"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Patients Seen -->
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="card border-0 shadow-sm h-100 cursor-pointer"
+                                 t-on-click="viewVisits">
+                                <div class="card-body text-center">
+                                    <div class="text-muted small mb-1">Patients Seen</div>
+                                    <div class="fs-2 fw-bold text-primary">
+                                        <t t-esc="formatNumber(state.kpis.patients_seen)"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Orders Created -->
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="card border-0 shadow-sm h-100 cursor-pointer"
+                                 t-on-click="viewVisits">
+                                <div class="card-body text-center">
+                                    <div class="text-muted small mb-1">Orders Created</div>
+                                    <div class="fs-2 fw-bold text-info">
+                                        <t t-esc="formatNumber(state.kpis.orders_created)"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivered -->
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <div class="text-muted small mb-1">Delivered</div>
+                                    <div class="fs-2 fw-bold text-success">
+                                        <t t-esc="formatNumber(state.kpis.spectacles_delivered)"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conversion Rate -->
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <div class="text-muted small mb-1">Conversion</div>
+                                    <div class="fs-2 fw-bold"
+                                         t-attf-class="fs-2 fw-bold {{ state.kpis.conversion_rate >= 70 ? 'text-success' : state.kpis.conversion_rate >= 50 ? 'text-warning' : 'text-danger' }}">
+                                        <t t-esc="formatPercent(state.kpis.conversion_rate)"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cash Collected -->
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <div class="text-muted small mb-1">Cash Collected</div>
+                                    <div class="fs-5 fw-bold text-success">
+                                        <t t-esc="formatCurrency(state.kpis.cash_collected)"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Revenue -->
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="card border-0 shadow-sm h-100 bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <div class="small mb-1 opacity-75">Total Revenue</div>
+                                    <div class="fs-5 fw-bold">
+                                        <t t-esc="formatCurrency(state.kpis.total_revenue)"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================== -->
+                    <!-- ROW 2: Invoices -->
+                    <!-- ============================== -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fa fa-file-text-o me-2" title="Invoices"/>
+                                        Invoices
+                                    </span>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-link p-0 me-2"
+                                                t-on-click="viewOutstandingInvoices">
+                                            View Outstanding
+                                        </button>
+                                        <button class="btn btn-sm btn-link p-0"
+                                                t-on-click="viewAllInvoices">
+                                            View All
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <!-- Invoices Generated -->
+                                        <div class="col cursor-pointer"
+                                             t-on-click="viewAllInvoices">
+                                            <div class="text-muted small mb-1">Generated</div>
+                                            <div class="fs-3 fw-bold text-primary">
+                                                <t t-esc="formatNumber(state.kpis.invoices_generated)"/>
+                                            </div>
+                                        </div>
+                                        <!-- Invoices Paid -->
+                                        <div class="col cursor-pointer"
+                                             t-on-click="viewPaidInvoices">
+                                            <div class="text-muted small mb-1">Paid</div>
+                                            <div class="fs-3 fw-bold text-success">
+                                                <t t-esc="formatNumber(state.kpis.invoices_paid)"/>
+                                            </div>
+                                            <div class="text-muted x-small mt-1" style="font-size:0.75rem;">
+                                                <t t-esc="formatCurrency(state.kpis.invoice_paid_amount)"/>
+                                            </div>
+                                        </div>
+                                        <!-- Invoices Outstanding -->
+                                        <div class="col cursor-pointer"
+                                             t-on-click="viewOutstandingInvoices">
+                                            <div class="text-muted small mb-1">Outstanding</div>
+                                            <div t-attf-class="fs-3 fw-bold {{ state.kpis.invoices_outstanding > 0 ? 'text-warning' : 'text-success' }}">
+                                                <t t-esc="formatNumber(state.kpis.invoices_outstanding)"/>
+                                            </div>
+                                            <div class="text-muted mt-1" style="font-size:0.75rem;">
+                                                <t t-esc="formatCurrency(state.kpis.invoice_outstanding_amount)"/>
+                                            </div>
+                                        </div>
+                                        <!-- Collection Rate -->
+                                        <div class="col">
+                                            <div class="text-muted small mb-1">Collection Rate</div>
+                                            <div t-attf-class="fs-3 fw-bold {{ (state.kpis.invoices_generated > 0 ? state.kpis.invoices_paid / state.kpis.invoices_generated * 100 : 0) >= 70 ? 'text-success' : 'text-warning' }}">
+                                                <t t-esc="formatPercent(state.kpis.invoices_generated > 0 ? state.kpis.invoices_paid / state.kpis.invoices_generated * 100 : 0)"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================== -->
+                    <!-- ROW 3: Insurance + Lab KPIs -->
+                    <!-- ============================== -->
+                    <div class="row g-3 mb-4">
+
+                        <!-- Insurance Section -->
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white fw-semibold d-flex justify-content-between">
+                                    <span>
+                                        <i class="fa fa-shield me-2" title="Insurance"/>
+                                        Insurance
+                                    </span>
+                                    <button class="btn btn-sm btn-link p-0"
+                                            t-on-click="viewInsuranceClaims">View All</button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-3">
+                                            <div class="text-muted small">Submitted</div>
+                                            <div class="fs-4 fw-bold text-info">
+                                                <t t-esc="state.kpis.claims_submitted"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="text-muted small">Received</div>
+                                            <div class="fs-4 fw-bold text-success">
+                                                <t t-esc="state.kpis.claims_received"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="text-muted small">Outstanding</div>
+                                            <div class="fs-4 fw-bold text-warning">
+                                                <t t-esc="state.kpis.outstanding_claims"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="text-muted small">Efficiency</div>
+                                            <div class="fs-4 fw-bold text-primary">
+                                                <t t-esc="formatPercent(state.kpis.collection_efficiency)"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lab Section -->
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white fw-semibold d-flex justify-content-between">
+                                    <span>
+                                        <i class="fa fa-flask me-2" title="Lab"/>
+                                        Lab
+                                    </span>
+                                    <button class="btn btn-sm btn-link p-0"
+                                            t-on-click="viewLabJobs">View All</button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-3">
+                                            <div class="text-muted small">In Lab</div>
+                                            <div class="fs-4 fw-bold text-primary">
+                                                <t t-esc="state.kpis.jobs_in_lab"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="text-muted small">Avg TAT (hrs)</div>
+                                            <div class="fs-4 fw-bold text-info">
+                                                <t t-esc="state.kpis.avg_turnaround_hours"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="text-muted small">Remakes</div>
+                                            <div class="fs-4 fw-bold text-danger cursor-pointer"
+                                                 t-on-click="viewRemakes">
+                                                <t t-esc="state.kpis.remake_count"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="text-muted small">Remake %</div>
+                                            <div t-attf-class="fs-4 fw-bold {{ state.kpis.remake_rate > 5 ? 'text-danger' : 'text-success' }}">
+                                                <t t-esc="formatPercent(state.kpis.remake_rate)"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================== -->
+                    <!-- ROW 4: Alerts -->
+                    <!-- ============================== -->
+                    <t t-if="state.alerts.length">
+                        <h5 class="fw-semibold mb-3">
+                            <i class="fa fa-bell me-2" title="Alerts"/>
+                            Active Alerts
+                            <span class="badge bg-danger ms-2">
+                                <t t-esc="state.alerts.length"/>
+                            </span>
+                        </h5>
+                        <div class="row g-2 mb-4">
+                            <t t-foreach="state.alerts" t-as="alert" t-key="alert.id">
+                                <div class="col-12">
+                                    <div t-attf-class="alert {{ getAlertClass(alert.severity) }} d-flex justify-content-between align-items-center mb-0"
+                                         t-att-role="getAlertRole(alert.severity)">
+                                        <div>
+                                            <strong class="text-capitalize">
+                                                <t t-esc="alert.severity"/>:
+                                            </strong>
+                                            <t t-esc="alert.message"/>
+                                            <span t-if="alert.branch_id" class="ms-2 text-muted small">
+                                                — <t t-esc="alert.branch_id[1]"/>
+                                            </span>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                                t-on-click="() => onResolveAlert(alert.id)">
+                                            Resolve
+                                        </button>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+
+                    <!-- No alerts state -->
+                    <t t-if="!state.alerts.length">
+                        <div class="text-center text-muted py-3">
+                            <i class="fa fa-check-circle fa-2x text-success mb-2" title="No alerts"/>
+                            <div>No active alerts</div>
+                        </div>
+                    </t>
+
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Form View Inheritance -->
+        <record id="view_stock_location_form_inherit_eyekei" model="ir.ui.view">
+            <field name="name">stock.location.form.inherit.eyekei</field>
+            <field name="model">stock.location</field>
+            <field name="inherit_id" ref="stock.view_location_form"/>
+            <field name="arch" type="xml">
+                <field name="usage" position="after">
+                    <field name="location_type" 
+                           widget="selection"
+                           options="{'horizontal': true}"
+                           invisible="usage not in ['internal', 'production', 'transit']"/>
+                    <field name="is_optical_location" invisible="1"/>
+                </field>
+                
+                <field name="company_id" position="after">
+                    <field name="branch_id" 
+                           options="{'no_create': True}"
+                           invisible="usage not in ['internal', 'production', 'transit']"/>
+                </field>
+                
+                <group name="additional_info" position="after">
+                    <group string="EyeKei Eyewear Configuration" 
+                           invisible="not is_optical_location">
+                        <field name="location_type" widget="radio" options="{'horizontal': true}"/>
+                        <field name="branch_id"/>
+                        <field name="is_optical_location"/>
+                    </group>
+                </group>
+            </field>
+        </record>
+
+        <!-- list View Inheritance -->
+        <record id="view_stock_location_list_inherit_eyekei" model="ir.ui.view">
+            <field name="name">stock.location.list.inherit.eyekei</field>
+            <field name="model">stock.location</field>
+            <field name="inherit_id" ref="stock.view_location_tree2"/>
+            <field name="arch" type="xml">
+                <field name="usage" position="after">
+                    <field name="location_type" optional="show"/>
+                    <field name="branch_id" optional="show"/>
+                </field>
+            </field>
+        </record>
+
+        <!-- Search View Inheritance -->
+        <!-- <record id="view_stock_location_search_inherit_eyekei" model="ir.ui.view">
+            <field name="name">stock.location.search.inherit.eyekei</field>
+            <field name="model">stock.location</field>
+            <field name="inherit_id" ref="stock.view_location_search"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="location_type"/>
+                    <field name="branch_id"/>
+                </field>
+                <filter name="inactive" position="before">
+                    <filter string="Central Lab" name="central_lab" domain="[('location_type', '=', 'central_lab')]"/>
+                    <filter string="Clinic Stock" name="clinic_stock" domain="[('location_type', '=', 'clinic_stock')]"/>
+                    <filter string="Dispensary" name="clinic_dispensary" domain="[('location_type', '=', 'clinic_dispensary')]"/>
+                    <separator/>
+                </filter>
+                <filter name="usage" position="after">
+                    <filter string="Branch" name="branch" context="{'group_by': 'branch_id'}"/>
+                    <filter string="Location Type" name="location_type" context="{'group_by': 'location_type'}"/>
+                </filter>
+            </field>
+        </record> -->
+
+        <!-- Action for Optical Locations -->
+        <record id="action_optical_locations" model="ir.actions.act_window">
+            <field name="name">Optical Locations</field>
+            <field name="res_model">stock.location</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('is_optical_location', '=', True)]</field>
+            <field name="context">{'default_is_optical_location': True}</field>
+        </record>
+
+        <!-- Menu Item -->
+    </data>
+</odoo>

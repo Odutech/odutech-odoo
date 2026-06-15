@@ -1,0 +1,49 @@
+<odoo>
+    <record id="view_payment_provider_form_mpesa" model="ir.ui.view">
+        <field name="name">payment.provider.form.mpesa</field>
+        <field name="model">payment.provider</field>
+        <field name="inherit_id" ref="payment.payment_provider_form"/>
+        <field name="arch" type="xml">
+           <xpath expr="//page[@name='configuration']" position="after">
+               <page string="M-Pesa Configuration" name="mpesa_configuration"  invisible="code != 'mpesa'">
+                    <div class="alert alert-info" role="alert">
+                        <h4><i class="fa fa-info-circle"/> M-Pesa Integration Setup</h4>
+                        <p>Configure your M-Pesa credentials from the Safaricom Developer Portal.</p>
+                        <ul>
+                            <li><strong>Sandbox:</strong> For testing and development</li>
+                            <li><strong>Production:</strong> For live transactions</li>
+                        </ul>
+                        <p>
+                            <a href="https://developer.safaricom.co.ke" target="_blank">
+                                <i class="fa fa-external-link"/> Visit Safaricom Developer Portal
+                            </a>
+                        </p>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="mpesa_consumer_key"/>
+                            <field name="mpesa_consumer_secret"/>
+                            <field name="mpesa_short_code"/>
+                            <field name="mpesa_callback_url"/>
+                        </group>
+                         <group>
+                            <field name="mpesa_passkey"/>
+                            <field name="mpesa_base_url"/>
+                             <field name="mpesa_registered_safaricom_url"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-warning" role="alert">
+                        <strong>Important Notes:</strong>
+                        <ul>
+                            <li>M-Pesa only supports KES currency</li>
+                            <li>Customers must have a valid Kenyan mobile number</li>
+                            <li>Test mode uses Safaricom's sandbox environment</li>
+                            <li>Ensure your callback URLs are publicly accessible</li>
+                        </ul>
+                    </div>
+               </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

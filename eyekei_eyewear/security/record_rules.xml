@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Record Rules: Multi-branch isolation -->
+        <record id="rule_visit_branch" model="ir.rule">
+            <field name="name">Visit: Branch Isolation</field>
+            <field name="model_id" ref="model_eyekei_patient_visit"/>
+            <field name="domain_force">[('branch_id', 'in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[
+                (4, ref('group_eyekei_reception')),
+                (4, ref('eyekei_eyewear.group_eyekei_manager')),
+                (4, ref('eyekei_eyewear.group_eyekei_admin')),
+            ]"/>
+        </record>
+        <record id="rule_insurance_claim_branch" model="ir.rule">
+            <field name="name">Insurance Claim: Branch Isolation</field>
+            <field name="model_id" ref="model_eyekei_insurance_claim"/>
+            <field name="domain_force">[('visit_id.branch_id', 'in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[
+                (4, ref('eyekei_eyewear.group_eyekei_reception')),
+                (4, ref('eyekei_eyewear.group_eyekei_manager')),
+                (4, ref('eyekei_eyewear.group_eyekei_admin')),
+            ]"/>
+        </record>
+        <record id="rule_lab_job_branch" model="ir.rule">
+            <field name="name">Lab Job: Branch Isolation</field>
+            <field name="model_id" ref="model_eyekei_lab_job"/>
+            <field name="domain_force">[('visit_id.branch_id', 'in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[
+                (4, ref('eyekei_eyewear.group_eyekei_lab_tech')),
+                (4, ref('eyekei_eyewear.group_eyekei_lab_manager')),
+                (4, ref('eyekei_eyewear.group_eyekei_manager')),
+                (4, ref('eyekei_eyewear.group_eyekei_admin')),
+            ]"/>
+        </record>
+        <record id="access_eyekei_lens_type_categorization" model="ir.model.access">
+            <field name="name">Eyekei Lens Type Categorization</field>
+            <field name="model_id" ref="model_eyekei_lens_type_categorization"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+        </record>
+
+        <record id="access_eyekei_insurance_claim_line" model="ir.model.access">
+            <field name="name">Insuarance Clain Line</field>
+            <field name="model_id" ref="model_eyekei_insurance_claim_line"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+        </record>
+    </data>
+</odoo>

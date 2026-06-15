@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Prescription Search -->
+        <!-- <record id="view_prescription_search" model="ir.ui.view">
+            <field name="name">eyekei.prescription.search</field>
+            <field name="model">eyekei.prescription</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="patient_id"/>
+                    <field name="lens_product_id"/>
+                    <filter string="Patient Copy" name="patient" domain="[('prescription_type', '=', 'patient')]"/>
+                    <filter string="Insurance Copy" name="insurance" domain="[('prescription_type', '=', 'insurance')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Type" name="type" context="{'group_by': 'prescription_type'}"/>
+                        <filter string="Lens Type" name="lens_type" context="{'group_by': 'lens_type'}"/>
+                    </group>
+                </search>
+            </field>
+        </record> -->
+        <!-- Prescription Form View -->
+        <record id="view_prescription_form" model="ir.ui.view">
+            <field name="name">eyekei.prescription.form</field>
+            <field name="model">eyekei.prescription</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_copy_from_patient" string="Copy from Patient Prescription" 
+                                type="object" class="oe_highlight" 
+                                invisible="prescription_type != 'insurance' or not visit_id.prescription_patient_id"/>
+                        <button name="confirm_prescription" string="Confirm Prescription" 
+                                type="object" class="oe_highlight" 
+                                invisible="state != 'draft'"/>
+                        <button name="download_prescription" string="Download Prescription" 
+                                type="object" class="oe_highlight" icon="fa-download"
+                                />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,finalized,sent"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                            <h3>
+                                <field name="prescription_type" widget="badge" 
+                                       decoration-success="prescription_type == 'patient'"
+                                       decoration-info="prescription_type == 'insurance'"/>
+                            </h3>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="visit_id" invisible="1" readonly="state != 'draft'"/>
+                                <field name="patient_id" readonly="state != 'draft'"/>
+                                <field name="prescription_type" readonly="state != 'draft'"/>
+                            </group>
+                        </group>
+                        
+                        <!-- Refraction Section -->
+                        <div class="o_horizontal_separator">Refraction Details</div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5>Right Eye (OD)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <group>
+                                            <field name="od_sph" string="SPH" readonly="state != 'draft'"/>
+                                            <field name="od_cyl" string="CYL" readonly="state != 'draft'"/>
+                                            <field name="od_axis" string="AXIS" readonly="state != 'draft'"/>
+                                            <field name="od_add" string="ADD" readonly="state != 'draft'"/>
+                                            <field name="od_va" string="V/A" readonly="state != 'draft'"/>
+                                        </group>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5>Left Eye (OS)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <group>
+                                            <field name="os_sph" string="SPH" readonly="state != 'draft'"/>
+                                            <field name="os_cyl" string="CYL" readonly="state != 'draft'"/>
+                                            <field name="os_axis" string="AXIS" readonly="state != 'draft'"/>
+                                            <field name="os_add" string="ADD" readonly="state != 'draft'"/>
+                                            <field name="os_va" string="V/A" readonly="state != 'draft'"/>
+                                        </group>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Lens Specifications -->
+                        <div class="o_horizontal_separator mt-4">Lens Specifications</div>
+                        <group>
+                            <group>
+                                <field name="lens_product_id" readonly="state != 'draft'"/>
+                                <field name="lens_type" widget="radio" readonly="state != 'draft'"/>
+                                <field name="lens_index" readonly="state != 'draft'"/>
+                                <field name="lens_coating" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="pd" string="PD (mm)" readonly="state != 'draft'"/>
+                                <field name="segment_height" readonly="state != 'draft'"/>
+                                <field name="prism" readonly="state != 'draft'"/>
+                                <field name="lens_price" widget="monetary" readonly="state != 'draft'"/>
+                            </group>
+                        </group>
+                        
+                        <!-- Visual Preview -->
+                        <div class="o_horizontal_separator">Prescription Preview</div>
+                        <div class="alert alert-info" role="status">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Eye</th>
+                                        <th>SPH</th>
+                                        <th>CYL</th>
+                                        <th>AXIS</th>
+                                        <th>ADD</th>
+                                        <th>V/A</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>OD (Right)</strong></td>
+                                        <td><field name="od_sph" readonly="1"/></td>
+                                        <td><field name="od_cyl" readonly="1"/></td>
+                                        <td><field name="od_axis" readonly="1"/></td>
+                                        <td><field name="od_add" readonly="1"/></td>
+                                        <td><field name="od_va" readonly="1"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>OS (Left)</strong></td>
+                                        <td><field name="os_sph" readonly="1"/></td>
+                                        <td><field name="os_cyl" readonly="1"/></td>
+                                        <td><field name="os_axis" readonly="1"/></td>
+                                        <td><field name="os_add" readonly="1"/></td>
+                                        <td><field name="os_va" readonly="1"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        
+        <!-- Prescription list View -->
+        <record id="view_prescription_list" model="ir.ui.view">
+            <field name="name">eyekei.prescription.list</field>
+            <field name="model">eyekei.prescription</field>
+            <field name="arch" type="xml">
+                <list decoration-success="prescription_type == 'patient'" decoration-info="prescription_type == 'insurance'">
+                    <field name="name"/>
+                    <field name="patient_id"/>
+                    <field name="prescription_type" widget="badge"/>
+                    <field name="lens_product_id"/>
+                    <field name="lens_type"/>
+                    <field name="lens_price"/>
+                </list>
+            </field>
+        </record>
+        
+        <!-- Action -->
+        <record id="action_prescription_list" model="ir.actions.act_window">
+            <field name="name">Prescriptions</field>
+            <field name="res_model">eyekei.prescription</field>
+            <field name="view_mode">list,form</field>
+        </record>
+    </data>
+</odoo>

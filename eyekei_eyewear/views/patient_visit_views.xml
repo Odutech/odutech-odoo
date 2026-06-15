@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ============================================ -->
+        <!-- OPTOMETRIST DASHBOARD (KANBAN) - Odoo 19 Fixed -->
+        <!-- ============================================ -->
+        <record id="view_visit_optometrist_dashboard" model="ir.ui.view">
+            <field name="name">eyekei.patient.visit.optometrist.dashboard</field>
+            <field name="model">eyekei.patient.visit</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state" 
+                        group_create="false" 
+                        quick_create="false" 
+                        records_draggable="false">
+
+                    <field name="state"/>
+                    <field name="patient_id"/>
+                    <field name="phone"/>
+                    <field name="is_insurance"/>
+                    <field name="is_remake"/>
+                    <field name="visit_date"/>
+                    <field name="optometrist_id"/>
+                    <field name="original_visit_id"/>
+
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-att-class="'oe_kanban_card oe_kanban_global_click ' + (record.is_remake.raw_value ? 'border-danger' : '')">
+
+                                <div class="oe_kanban_content">
+                                    <!-- Header -->
+                                    <div class="o_kanban_record_top mb-2">
+                                        <div class="o_kanban_record_headings">
+                                            <strong class="o_kanban_record_title">
+                                                <t t-esc="record.patient_id.name"/>
+                                            </strong>
+                                            <div class="text-muted small">
+                                                <t t-esc="record.phone or 'No Phone'"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span t-if="record.is_insurance.raw_value" class="badge bg-info me-1">INSURANCE</span>
+                                            <span t-if="record.is_remake.raw_value" class="badge bg-danger">REMAKE</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Details -->
+                                    <div class="text-muted mb-3 small">
+                                        <div>
+                                            <i class="fa fa-phone" title="Phone"/> 
+                                            <t t-esc="record.patient_id.phone or 'No Phone'"/>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-clock-o" title="Visit Date"/> 
+                                            <t t-esc="record.visit_date"/>
+                                        </div>
+                                        <t t-if="record.is_remake.raw_value">
+                                            <div class="text-danger">
+                                                Original: <t t-esc="record.original_visit_id"/>
+                                            </div>
+                                        </t>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <div class="o_kanban_record_bottom">
+                                        <!-- Waiting -->
+                                        <button name="action_start_consultation" 
+                                                string="Start Consultation" 
+                                                type="object" 
+                                                class="btn btn-primary btn-sm w-100"
+                                                invisible="state != 'waiting'"/>
+
+                                        <!-- In Consultation -->
+                                        <div invisible="state != 'in_consultation'" class="d-grid gap-2">
+                                            <button name="action_prescription_complete" 
+                                                    string="Complete Prescription" 
+                                                    type="object" 
+                                                    class="btn btn-success btn-sm"/>
+                                        </div>
+
+                                        <!-- Pending Insurance -->
+                                        <div invisible="state != 'pending_insurance'" class="d-grid gap-2">
+                                            <button name="action_approve_insurance" 
+                                                    string="Insurance Approved" 
+                                                    type="object" 
+                                                    class="btn btn-success btn-sm"/>
+                                        </div>
+
+                                        <!-- Approved / Ready for Lab -->
+                                        <button name="action_send_to_lab" 
+                                                string="Send to Lab" 
+                                                type="object" 
+                                                class="btn btn-primary btn-sm w-100"
+                                                invisible="state not in ('approved', 'prescription_done')"/>
+
+                                        <!-- Ready for Collection -->
+                                        <button name="action_close_visit" 
+                                                string="Mark Collected &amp; Close" 
+                                                type="object" 
+                                                class="btn btn-success btn-sm w-100"
+                                                invisible="state != 'ready_collection'"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- PATIENT VISIT FORM VIEW -->
+        <!-- ============================================ -->
+        <record id="view_visit_form" model="ir.ui.view">
+            <field name="name">eyekei.patient.visit.form</field>
+            <field name="model">eyekei.patient.visit</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_send_to_consultation" 
+                                string="Send to Consultation" 
+                                type="object" 
+                                class="oe_highlight" 
+                                invisible="state != 'draft'"/>
+
+                        <button name="action_start_consultation" 
+                                string="Start Consultation" 
+                                type="object" 
+                                class="oe_highlight" 
+                                invisible="state != 'waiting'"/>
+
+                        <button name="action_prescription_complete" 
+                                string="Complete Prescription" 
+                                type="object" 
+                                class="oe_highlight" 
+                                invisible="state != 'in_consultation'"/>
+
+                        <button name="action_approve_insurance" 
+                                string="Insurance Approved" 
+                                type="object" 
+                                class="btn btn-success btn-sm"
+                                invisible="state != 'pending_insurance' or not invoice_id or not is_insurance"/>
+
+                        <button name="action_send_to_lab" 
+                                string="Send to Lab" 
+                                type="object" 
+                                class="oe_highlight" 
+                                invisible="state not in ('approved', 'prescription_done')"/>
+
+                        <button name="action_close_visit" 
+                                string="Close Visit" 
+                                type="object" 
+                                class="oe_highlight" 
+                                invisible="state != 'ready_collection'"/>
+
+                        <field name="state" widget="statusbar" 
+                               statusbar_visible="draft,waiting,in_consultation,prescription_done,pending_insurance,approved,sent_to_lab,ready_collection,closed"/>
+                    </header>
+
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+
+                        <group>
+                            <group>
+                                <field name="patient_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="visit_date" readonly="state != 'draft'"/>
+                                <field name="branch_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="is_insurance" widget="boolean_toggle" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="optometrist_id" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'"/>
+                                <field name="receptionist_id" readonly="1"/>
+                                <field name="lab_technician_id" options="{'no_create': True, 'no_open': True}" readonly="state != 'approved'"/>
+                                <field name="lab_job_id" readonly="1"/>
+                                <field name="insurance_claim_id" invisible="not is_insurance" readonly="1"/>
+                                <field name="invoice_id" readonly="1" invisible="not is_insurance"/>
+                                <field name="paying_invoice_id" readonly="1" invisible="is_insurance"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Clinical Data">
+                                <group>
+                                    <field name="chief_complaint" readonly="state != 'in_consultation'" required="state == 'in_consultation'"/>
+                                    <field name="history"  readonly="state != 'in_consultation'" required="state == 'in_consultation'"/>
+                                    <field name="signs_symptoms"  readonly="state != 'in_consultation'" required="state == 'in_consultation'"/>
+                                    <field name="diagnosis" readonly="state != 'in_consultation'" required="state == 'in_consultation'"/>
+                                    <field name="remarks"  readonly="state != 'in_consultation'"/>
+                                </group>
+                            </page>
+
+                            <page string="Prescriptions">
+                                <group>
+                                    <field name="prescription_patient_id"  readonly="state != 'in_consultation'"/>
+                                    <field name="prescription_insurance_id" invisible="not is_insurance" readonly="state != 'in_consultation'"/>
+                                </group>
+                            </page>
+
+                            <page string="Frame &amp; Billing">
+                                <group>
+                                    <field name="frame_product_id" readonly="state != 'in_consultation'" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="frame_price" readonly="state != 'in_consultation'"/>
+                                    <field name="total_amount" readonly="state != 'in_consultation'"/>
+                                    <field name="amount_paid" readonly="state != 'in_consultation'"/>
+                                    <field name="balance_due" readonly="state != 'in_consultation'"/>
+                                </group>
+                            </page>
+
+                            <page string="Lab Details" invisible="not lab_job_id">
+                                <group>
+                                    <field name="lab_source" readonly="state not in ('sent_to_lab', 'in_lab', 'lab_ready')"/>
+                                    <field name="external_vendor_id" invisible="lab_source != 'external'"/>
+                                </group>
+                            </page>
+
+                            <page string="Remake Info" invisible="not is_remake">
+                                <group>
+                                    <field name="original_visit_id"/>
+                                    <field name="remake_reason"/>
+                                    <field name="remake_approved_by"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <!-- List View -->
+        <record id="view_patient_visit_list" model="ir.ui.view">
+            <field name="name">eyekei.patient.visit.list</field>
+            <field name="model">eyekei.patient.visit</field>
+            <field name="arch" type="xml">
+                <list string="Visits" decoration-muted="state == 'cancelled'" decoration-success="state == 'closed'" decoration-info="state == 'waiting'">
+                    <field name="name"/>
+                    <field name="patient_id"/>
+                    <field name="visit_date"/>
+                    <field name="branch_id"/>
+                    <field name="optometrist_id"/>
+                    <field name="state" widget="badge"/>
+                    <field name="is_insurance"/>
+                    <!-- <field name="payment_status" widget="badge" decoration-success="payment_status == 'paid'" decoration-warning="payment_status == 'pending'"/> -->
+                    <field name="total_amount"/>
+                    <field name="amount_paid"/>
+                    <field name="balance_due"/>
+                    <!-- <field name="insurance_status" optional="hide"/> -->
+                </list>
+            </field>
+        </record>
+
+        <!-- Window Action -->
+        <record id="action_patient_visit_list" model="ir.actions.act_window">
+            <field name="name">Visits</field>
+            <field name="res_model">eyekei.patient.visit</field>
+            <field name="view_mode">list,form</field>
+            <!-- <field name="search_view_id" ref="view_patient_visit_search"/> -->
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No visits found!
+                </p>
+            </field>
+        </record>
+
+        <!-- Window Action: Today's Visits -->
+        <record id="action_today_visits" model="ir.actions.act_window">
+            <field name="name">Today's Visits</field>
+            <field name="res_model">eyekei.patient.visit</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('visit_date', '>=', context_today().strftime('%Y-%m-%d 00:00:00'))]</field>
+            <!-- <field name="search_view_id" ref="view_patient_visit_search"/> -->
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════
+         Paper Format — A4 Landscape (two copies side-by-side)
+         ═══════════════════════════════════════════════════ -->
+    <record id="paperformat_prescription" model="report.paperformat">
+        <field name="name">Prescription (A4 Landscape)</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">5</field>
+        <field name="margin_bottom">5</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">3</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════
+         Report Action
+         ═══════════════════════════════════════════════════ -->
+    <record id="action_report_prescription_document" model="ir.actions.report">
+        <field name="name">Prescription</field>
+        <field name="model">eyekei.prescription</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">eyekei_eyewear.report_prescription_document</field>
+        <field name="report_file">eyekei_eyewear.report_prescription_document</field>
+        <field name="paperformat_id" ref="paperformat_prescription"/>
+        <field name="print_report_name">'Prescription-%s' % (object.name or 'Draft')</field>
+        <field name="binding_model_id" ref="model_eyekei_prescription"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════
+         Sub-template: one prescription block
+         Called twice per page (left copy, right copy)
+         ═══════════════════════════════════════════════════ -->
+    <template id="report_prescription_block">
+        <div style="width: 100%; font-family: Arial, sans-serif; font-size: 9px; color: #111; box-sizing: border-box;">
+
+            <!-- ══════════════════════════════════════
+                 HEADER — Logo circle + clinic name + Rx No
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; margin-bottom: 2px;">
+                <tr>
+                    <!-- Circle logo (CSS-drawn) -->
+                    <td style="width: 13%; vertical-align: middle; text-align: center;">
+                        <div style="
+                            width: 38px; height: 38px;
+                            border: 2px solid #111;
+                            border-radius: 50%;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: bold;
+                            font-size: 11px;
+                            line-height: 1;
+                        ">
+                            <!-- First two initials of company name -->
+                            <t t-esc="''.join(w[0] for w in (o.env.company.name or 'XX').split()[:2]).upper()"/>
+                        </div>
+                    </td>
+
+                    <!-- Clinic details (centre) -->
+                    <td style="vertical-align: middle; text-align: center; width: 74%;">
+                        <!-- Rx No above clinic name -->
+                        <p style="margin: 0 0 1px 0; font-size: 8px; font-weight: bold;">
+                            No: <t t-esc="o.name"/>
+                        </p>
+                        <p style="margin: 0; font-size: 11px; font-weight: bold;">
+                            <t t-esc="o.env.company.name"/>
+                        </p>
+                        <t t-if="o.env.company.street">
+                            <p style="margin: 0; font-size: 7.5px;">
+                                Main Office: <t t-esc="o.env.company.street"/>
+                            </p>
+                        </t>
+                        <t t-if="o.env.company.city">
+                            <p style="margin: 0; font-size: 7.5px;">
+                                <t t-esc="o.env.company.city"/>
+                                <t t-if="o.env.company.country_id">, <t t-esc="o.env.company.country_id.name"/></t>
+                            </p>
+                        </t>
+                        <p style="margin: 0; font-size: 7.5px;">
+                            <t t-if="o.env.company.phone">Tel: <t t-esc="o.env.company.phone"/></t>
+                            <t t-if="o.env.company.phone and o.env.company.email"> | </t>
+                            <t t-if="o.env.company.email">Email: <t t-esc="o.env.company.email"/></t>
+                        </p>
+                    </td>
+                    <td style="width: 13%;"></td>
+                </tr>
+            </table>
+
+            <!-- Separator line -->
+            <hr style="border: none; border-top: 1px solid #111; margin: 2px 0 4px 0;"/>
+
+            <!-- ══════════════════════════════════════
+                 DATE / NAME / TEL + REF NO
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; font-size: 8.5px; margin-bottom: 2px;">
+                <tr>
+                    <td style="font-weight: bold; white-space: nowrap; width: 10%; padding-bottom: 3px;">Date :</td>
+                    <td style="border-bottom: 1px solid #111; width: 40%; padding-bottom: 3px;">
+                        <span t-field="o.create_date" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                    </td>
+                    <td style="width: 10%;"></td>
+                    <td style="width: 40%;"></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; white-space: nowrap; padding-bottom: 3px;">Name :</td>
+                    <td colspan="3" style="border-bottom: 1px solid #111; padding-bottom: 3px;">
+                        <t t-esc="o.patient_id.name"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; white-space: nowrap; padding-bottom: 3px;">Tel :</td>
+                    <td style="border-bottom: 1px solid #111; padding-bottom: 3px;">
+                        <t t-if="o.patient_id.phone">
+                            <t t-esc="o.patient_id.phone"/>
+                        </t>
+                        <t t-elif="o.patient_id.phone">
+                            <t t-esc="o.patient_id.phone"/>
+                        </t>
+                    </td>
+                    <td style="font-weight: bold; white-space: nowrap; padding: 0 4px 3px 8px;">Ref No :</td>
+                    <td style="border-bottom: 1px solid #111; padding-bottom: 3px;">
+                        <t t-esc="o.name"/>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 PRESCRIPTION TABLE
+                 Right Eye | Left Eye
+                 Columns: [row-label] | Spherical | Cylindrical | Axis | [gap] | Spherical | Cylindrical | Axis
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; font-size: 8px; margin-bottom: 0;">
+                <!-- Eye group headers -->
+                <tr>
+                    <td style="width: 12%;"></td>
+                    <td colspan="3" style="text-align: center; font-weight: bold; font-size: 9px; padding-bottom: 2px; width: 40%;">Right Eye</td>
+                    <td style="width: 1%;"></td>
+                    <td colspan="3" style="text-align: center; font-weight: bold; font-size: 9px; padding-bottom: 2px; width: 47%;">Left Eye</td>
+                </tr>
+                <!-- Column headers -->
+                <tr style="background-color: #fff;">
+                    <td style="border: 1px solid #111; padding: 2px 2px; text-align: center; font-weight: bold; font-size: 7px;"></td>
+                    <td style="border: 1px solid #111; padding: 2px 2px; text-align: center; font-weight: bold; font-size: 7px;">Spherical</td>
+                    <td style="border: 1px solid #111; padding: 2px 2px; text-align: center; font-weight: bold; font-size: 7px;">Cylindrical</td>
+                    <td style="border: 1px solid #111; padding: 2px 2px; text-align: center; font-weight: bold; font-size: 7px;">Axis</td>
+                    <td style="width: 1%;"></td>
+                    <td style="border: 1px solid #111; padding: 2px 2px; text-align: center; font-weight: bold; font-size: 7px;">Spherical</td>
+                    <td style="border: 1px solid #111; padding: 2px 2px; text-align: center; font-weight: bold; font-size: 7px;">Cylindrical</td>
+                    <td style="border: 1px solid #111; padding: 2px 2px; text-align: center; font-weight: bold; font-size: 7px;">Axis</td>
+                </tr>
+                <!-- FAR row -->
+                <tr>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center; font-weight: bold; height: 26px;">Far</td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;">
+                        <t t-esc="o.od_sph"/>
+                    </td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;">
+                        <t t-esc="o.od_cyl"/>
+                    </td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;">
+                        <t t-esc="o.od_axis"/>
+                    </td>
+                    <td style="width: 1%;"></td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;">
+                        <t t-esc="o.os_sph"/>
+                    </td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;">
+                        <t t-esc="o.os_cyl"/>
+                    </td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;">
+                        <t t-esc="o.os_axis"/>
+                    </td>
+                </tr>
+                <!-- NEAR ADDITION row -->
+                <tr>
+                    <td style="border: 1px solid #111; padding: 4px 3px; text-align: center; font-weight: bold; height: 26px;">Near<br/>Addition</td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;">
+                        <t t-esc="o.od_add"/>
+                    </td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;"></td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;"></td>
+                    <td style="width: 1%;"></td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;">
+                        <t t-esc="o.os_add"/>
+                    </td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;"></td>
+                    <td style="border: 1px solid #111; padding: 6px 3px; text-align: center;"></td>
+                </tr>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 MATERIAL ROW
+                 Left area: "Material" label + lens name
+                 Right: Far/Near/PD | Type of Lens | Seg Height sub-cells
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; font-size: 8px; margin-bottom: 0;">
+                <tr>
+                    <!-- Material label + value (left area) -->
+                    <td style="border: 1px solid #111; padding: 3px 4px; vertical-align: top; width: 48%;">
+                        <span style="font-weight: bold;">Material</span>&#160;
+                        <t t-if="o.lens_product_id">
+                            <t t-esc="o.lens_product_id.name"/>
+                        </t>
+                    </td>
+                    <!-- Far/Near/PD sub-cell -->
+                    <td style="border: 1px solid #111; padding: 0; vertical-align: top; width: 14%; text-align: center;">
+                        <div style="border-bottom: 1px solid #111; padding: 2px 2px; font-weight: bold; font-size: 6.5px;">
+                            Far<br/>Near<br/>PD
+                        </div>
+                        <div style="padding: 3px 2px; font-size: 8px;">
+                            <t t-esc="o.pd"/>
+                        </div>
+                    </td>
+                    <!-- Type of Lens sub-cell -->
+                    <td style="border: 1px solid #111; padding: 0; vertical-align: top; width: 20%; text-align: center;">
+                        <div style="border-bottom: 1px solid #111; padding: 2px 2px; font-weight: bold; font-size: 6.5px;">
+                            Type of<br/>Lens
+                        </div>
+                        <div style="padding: 3px 2px; font-size: 8px;">
+                            <t t-esc="o.lens_type.name"/>
+                        </div>
+                    </td>
+                    <!-- Seg Height sub-cell -->
+                    <td style="border: 1px solid #111; padding: 0; vertical-align: top; width: 18%; text-align: center;">
+                        <div style="border-bottom: 1px solid #111; padding: 2px 2px; font-weight: bold; font-size: 6.5px;">
+                            Seg<br/>Height
+                        </div>
+                        <div style="padding: 3px 2px; font-size: 8px;">
+                            <t t-esc="o.segment_height"/>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 REPAIR / REMARKS
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; font-size: 8px; margin-bottom: 0;">
+                <tr>
+                    <td style="border: 1px solid #111; padding: 4px 4px; vertical-align: top; height: 28px;">
+                        <span style="font-weight: bold;">Repair/<br/>Remarks</span>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 FRAME CODE
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; font-size: 8.5px; margin-bottom: 4px;">
+                <tr>
+                    <td style="border: 1px solid #111; padding: 4px 4px; white-space: nowrap;">
+                        <span style="font-weight: bold;">FRAME CODE:</span>&#160;
+                        <span style="
+                            display: inline-block;
+                            border: 1px solid #111;
+                            min-width: 100px;
+                            height: 14px;
+                            vertical-align: middle;
+                        "><t t-esc="o.visit_id.frame_product_id.frame_size"/></span>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 BOTTOM FIELDS (underline rows)
+                 Frame/Amount | Mode/Deposit | Size-Color/Balance | Ready
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; font-size: 8.5px; margin-bottom: 2px;">
+                <!-- Frame : ______    Amount : ______ -->
+                <tr>
+                    <td style="font-weight: bold; white-space: nowrap; width: 13%; padding-bottom: 4px;">Frame :</td>
+                    <td style="border-bottom: 1px solid #111; width: 34%; padding-bottom: 4px;"><t t-esc="o.visit_id.frame_product_id.name"/></td>
+                    <td style="width: 5%;"></td>
+                    <td style="font-weight: bold; white-space: nowrap; width: 13%; padding-bottom: 4px;">Amount :</td>
+                    <td style="border-bottom: 1px solid #111; width: 35%; padding-bottom: 4px;">&#160;</td>
+                </tr>
+                <!-- Mode : ______    Deposit : ______ -->
+                <tr>
+                    <td style="font-weight: bold; white-space: nowrap; padding-bottom: 4px;">Mode :</td>
+                    <td style="border-bottom: 1px solid #111; padding-bottom: 4px;">&#160;</td>
+                    <td></td>
+                    <td style="font-weight: bold; white-space: nowrap; padding-bottom: 4px;">Deposit :</td>
+                    <td style="border-bottom: 1px solid #111; padding-bottom: 4px;">&#160;</td>
+                </tr>
+                <!-- Size/Color : ______    Balance : ______ -->
+                <tr>
+                    <td style="font-weight: bold; white-space: nowrap; padding-bottom: 4px;">Size/Color :</td>
+                    <td style="border-bottom: 1px solid #111; padding-bottom: 4px;"><t t-esc="o.visit_id.frame_product_id.frame_size"/>/<t t-esc="o.visit_id.frame_product_id.frame_color"/></td>
+                    <td></td>
+                    <td style="font-weight: bold; white-space: nowrap; padding-bottom: 4px;">Balance :</td>
+                    <td style="border-bottom: 1px solid #111; padding-bottom: 4px;">&#160;</td>
+                </tr>
+                <!-- Ready : ____________ (full width) -->
+                <tr>
+                    <td style="font-weight: bold; white-space: nowrap; padding-bottom: 4px;">Ready :</td>
+                    <td colspan="4" style="border-bottom: 1px solid #111; padding-bottom: 4px;">&#160;</td>
+                </tr>
+                <!-- Done By : ___   Checked : ___   Remark : ___ -->
+                <tr>
+                    <td style="font-weight: bold; white-space: nowrap; padding-bottom: 3px;">Done By :</td>
+                    <td style="border-bottom: 1px solid #111; padding-bottom: 3px;">&#160;</td>
+                    <td style="font-weight: bold; white-space: nowrap; padding: 0 2px 3px 4px;">Checked :</td>
+                    <td style="font-weight: bold; white-space: nowrap; padding-bottom: 3px;">Remark :</td>
+                    <td style="border-bottom: 1px solid #111; padding-bottom: 3px;">&#160;</td>
+                </tr>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 FOOTER DISCLAIMERS
+                 ══════════════════════════════════════ -->
+            <p style="text-align: center; font-size: 7px; margin: 1px 0;">
+                All repairs &amp; adjustment are undertaken at owner's risk.
+            </p>
+            <p style="text-align: center; font-size: 7px; margin: 1px 0;">
+                Glasses not collected within 3 months shall be dismantled to recover cost.
+            </p>
+
+        </div>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════
+         Main Template — two copies side-by-side on landscape A4
+         ═══════════════════════════════════════════════════ -->
+    <template id="report_prescription_document">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="o">
+                <div class="page" style="font-family: Arial, sans-serif; font-size: 9px; color: #111; width: 100%;">
+                    <table width="100%" style="border-collapse: collapse;">
+                        <tr>
+                            <!-- LEFT COPY -->
+                            <td style="width: 50%; vertical-align: top; padding-right: 5px; border-right: 1px dashed #888;">
+                                <t t-call="eyekei_eyewear.report_prescription_block">
+                                    <t t-set="o" t-value="o"/>
+                                </t>
+                            </td>
+                            <!-- RIGHT COPY (identical) -->
+                            <td style="width: 50%; vertical-align: top; padding-left: 5px;">
+                                <t t-call="eyekei_eyewear.report_prescription_block">
+                                    <t t-set="o" t-value="o"/>
+                                </t>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

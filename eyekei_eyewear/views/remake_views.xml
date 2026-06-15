@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Remake Order Form -->
+        <record id="view_remake_order_form" model="ir.ui.view">
+            <field name="name">eyekei.remake.order.form</field>
+            <field name="model">eyekei.remake.order</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_approve" string="Approve Remake" type="object" class="oe_highlight"
+                            invisible="state != 'pending_approval' or not requires_approval" />
+                        <button name="action_approve_no_approval" string="Approve Remake" type="object"
+                            class="oe_highlight" invisible="state != 'pending_approval' or requires_approval" />
+                        <button name="action_create_new_visit" string="Create New Visit" type="object"
+                            class="oe_highlight" invisible="state != 'approved' or new_visit_id" />
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="pending_approval,approved,in_production,completed" />
+                    </header>
+                    <sheet>
+                        <div class="alert alert-warning" role="alert" invisible="not requires_approval">
+                            <strong>Manager Approval Required!</strong> This remake requires approval before proceeding.
+                        </div>
+
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1" />
+                            </h1>
+                            <h3>
+                                <field name="remake_type" widget="badge"
+                                    decoration-danger="remake_type == 'clinical_error'"
+                                    decoration-warning="remake_type == 'patient_complaint'"
+                                    decoration-success="remake_type == 'paid_upgrade'" />
+                            </h3>
+                        </div>
+
+                        <group>
+                            <group>
+                                <field name="patient_id" readonly="state != 'pending_approval'"
+                                    options="{'no_create': True, 'no_open': True}" />
+                                <field name="original_visit_id" readonly="state != 'pending_approval'"
+                                    options="{'no_create': True, 'no_open': True}" />
+                                <field name="responsible_optometrist_id" invisible="remake_type != 'clinical_error'"
+                                    readonly="state != 'pending_approval'"
+                                    options="{'no_create': True, 'no_open': True}" />
+                            </group>
+                            <group>
+                                <field name="remake_type" readonly="state != 'pending_approval'" />
+                                <field name="cost_type" readonly="state != 'pending_approval'" />
+                                <field name="days_after_delivery" readonly="state != 'pending_approval'" />
+                            </group>
+                        </group>
+
+                        <!-- Approval Section -->
+                        <div class="o_horizontal_separator" style="font-weight: bold; margin: 10px 10px;">Approval
+                            Control</div>
+                        <group>
+                            <group>
+                                <field name="requires_approval" readonly="1" />
+                                <field name="approved_by" readonly="1" />
+                                <field name="approval_date" readonly="1" />
+                            </group>
+                        </group>
+
+                        <!-- Complaint Details -->
+                        <div class="o_horizontal_separator" style="font-weight: bold; margin: 10px 10px;">Complaint
+                            Details</div>
+                        <group>
+                            <field name="complaint_type" readonly="state != 'pending_approval'" />
+                            <field name="reexam_findings" readonly="state != 'pending_approval'" />
+                            <field name="final_decision" widget="radio" readonly="state != 'pending_approval'" />
+                        </group>
+
+                        <!-- Cost Impact -->
+                        <div class="o_horizontal_separator" style="font-weight: bold; margin: 10px 10px;">Cost Analysis
+                        </div>
+                        <group>
+                            <group>
+                                <field name="original_cost" />
+                                <field name="remake_cost" />
+                                <field name="cost_impact" />
+                            </group>
+                            <group>
+                                <field name="lens_reversed" readonly="state != 'pending_approval'" />
+                                <field name="lens_product_id" readonly="state != 'pending_approval'" />
+                            </group>
+                        </group>
+
+                        <!-- New Visit Link -->
+                        <div class="o_horizontal_separator" style="font-weight: bold; margin: 10px 10px;"
+                            invisible="not new_visit_id">New Visit Created</div>
+                        <group invisible="not new_visit_id">
+                            <field name="new_visit_id" readonly="1" />
+                            <button name="action_open_new_visit" string="Open New Visit" type="object"
+                                class="btn btn-primary" />
+                        </group>
+                    </sheet>
+                    <chatter />
+                </form>
+            </field>
+        </record>
+
+        <!-- Remake Order list -->
+        <record id="view_remake_order_list" model="ir.ui.view">
+            <field name="name">eyekei.remake.order.list</field>
+            <field name="model">eyekei.remake.order</field>
+            <field name="arch" type="xml">
+                <list decoration-danger="remake_type == 'clinical_error'"
+                    decoration-warning="remake_type == 'patient_complaint'"
+                    decoration-success="remake_type == 'paid_upgrade'">
+                    <field name="name" />
+                    <field name="patient_id" />
+                    <field name="original_visit_id" />
+                    <field name="remake_type" widget="badge" />
+                    <field name="cost_type" />
+                    <field name="state" widget="badge" />
+                    <field name="cost_impact" />
+                    <field name="requires_approval" />
+                    <field name="approved_by" />
+                </list>
+            </field>
+        </record>
+
+        <!-- Remake Search -->
+        <!-- <record id="view_remake_order_search" model="ir.ui.view">
+            <field name="name">eyekei.remake.order.search</field>
+            <field name="model">eyekei.remake.order</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name" />
+                    <field name="patient_id" />
+                    <field name="original_visit_id" />
+                    <filter string="Clinical Errors" name="clinical"
+                        domain="[('remake_type', '=', 'clinical_error')]" />
+                    <filter string="Patient Complaints" name="complaint"
+                        domain="[('remake_type', '=', 'patient_complaint')]" />
+                    <filter string="Paid Upgrades" name="paid" domain="[('remake_type', '=', 'paid_upgrade')]" />
+                    <separator />
+                    <filter string="Pending Approval" name="pending" domain="[('state', '=', 'pending_approval')]" />
+                    <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]" />
+                    <group expand="0" string="Group By">
+                        <filter string="Remake Type" name="group_remake_type" context="{'group_by': 'remake_type'}" />
+                        <filter string="Cost Type" name="group_cost_type" context="{'group_by': 'cost_type'}" />
+                        <filter string="State" name="group_state" context="{'group_by': 'state'}" />
+                        <filter string="Responsible Optometrist" name="group_optometrist"
+                            context="{'group_by': 'responsible_optometrist_id'}" />
+                    </group>
+                </search>
+            </field>
+        </record> -->
+
+        <!-- Clinical Error Report -->
+        <record id="action_clinical_error_report" model="ir.actions.act_window">
+            <field name="name">Clinical Error Report</field>
+            <field name="res_model">eyekei.remake.order</field>
+            <field name="view_mode">pivot,list,form</field>
+            <field name="domain">[('remake_type', '=', 'clinical_error')]</field>
+            <field name="context">{'group_by': ['responsible_optometrist_id']}</field>
+        </record>
+
+        <!-- Remake Pivot (Analytics) -->
+        <record id="view_remake_order_pivot" model="ir.ui.view">
+            <field name="name">eyekei.remake.order.pivot</field>
+            <field name="model">eyekei.remake.order</field>
+            <field name="arch" type="xml">
+                <pivot>
+                    <field name="create_date" type="row" interval="month" />
+                    <field name="remake_type" type="col" />
+                    <field name="cost_impact" type="measure" />
+                    <field name="remake_cost" type="measure" />
+                    <!-- <field name="__count" type="measure" string="Count"/> -->
+                </pivot>
+            </field>
+        </record>
+
+        <!-- Remake Action -->
+        <record id="action_remake_order_list" model="ir.actions.act_window">
+            <field name="name">Remake Orders</field>
+            <field name="res_model">eyekei.remake.order</field>
+            <field name="view_mode">list,form,pivot</field>
+        </record>
+
+        <!-- Remake Wizard (Quick Create) -->
+        <record id="view_remake_wizard_form" model="ir.ui.view">
+            <field name="name">eyekei.remake.wizard.form</field>
+            <field name="model">eyekei.remake.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="patient_id" options="{'no_create': True, 'no_open': True}" />
+                            <field name="original_visit_id" options="{'no_create': True, 'no_open': True}" />
+                            <field name="reason_type" widget="radio" />
+                            <field name="complaint_description" />
+                            <field name="days_after_delivery" />
+                        </group>
+                        <group>
+                            <field name="optometrist_id" invisible="reason_type != 'clinical_error'" />
+                            <field name="requires_manager_approval" readonly="1" />
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="action_create_remake" string="Create Remake Order" type="object"
+                            class="btn btn-primary" />
+                        <button string="Cancel" class="btn btn-secondary" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

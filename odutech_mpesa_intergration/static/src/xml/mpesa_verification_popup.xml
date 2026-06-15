@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <template t-name="odutech_mpesa_integration.MpesaVerificationPopup">
+    <div class="mpesa-popup o_dialog">
+        <div class="popup-header">
+            <img src="/odutech_mpesa_intergration/static/description/mpesa.jpg" class="mpesa-icon"/>
+            <h2 t-esc="props.title"/>
+        </div>
+        <div class="popup-body">
+            <p t-esc="props.description"/>
+            <input type="text" t-model="state.inputValue" class="o_input" placeholder="2547XXXXXXXX"/>
+            <t t-if="verifying.active">
+                <p>Verifying payment, please wait...</p>
+            </t>
+        </div>
+        <div class="popup-footer">
+            <button t-on-click="cancel">Cancel</button>
+            <button t-on-click="verifyPayment" t-att-disabled="verifying.active">
+                <t t-esc="props.confirmText"/>
+            </button>
+        </div>
+    </div>
+  </template>
+</odoo>

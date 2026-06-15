@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════
+         Paper Format — A4 Landscape (two copies side-by-side)
+         ═══════════════════════════════════════════════════ -->
+    <record id="paperformat_proforma_invoice" model="report.paperformat">
+        <field name="name">Proforma Invoice (A4 Landscape)</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">6</field>
+        <field name="margin_bottom">6</field>
+        <field name="margin_left">6</field>
+        <field name="margin_right">6</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">3</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════
+         Report Action
+         ═══════════════════════════════════════════════════ -->
+    <record id="action_report_proforma_invoice" model="ir.actions.report">
+        <field name="name">Proforma Invoice</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">eyekei_eyewear.report_proforma_invoice_document</field>
+        <field name="report_file">eyekei_eyewear.report_proforma_invoice_document</field>
+        <field name="paperformat_id" ref="paperformat_proforma_invoice"/>
+        <field name="print_report_name">'ProForma-%s' % (object.name or 'Draft').replace('/', '-')</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════
+         Sub-template: one invoice block
+         Called twice (left copy, right copy) per page
+         ═══════════════════════════════════════════════════ -->
+    <template id="report_proforma_invoice_block">
+        <!--
+            o         = account.move record
+            claim     = eyekei.insurance.claim record (or False)
+            bill_to   = dict-like object resolved in the main template
+        -->
+        <div style="width: 100%; display: inline-block; vertical-align: top; font-family: Arial, sans-serif; font-size: 9px; color: #111; padding: 0 4px; box-sizing: border-box;">
+
+            <!-- ══════════════════════════════════════
+                 HEADER — Company name + INVOICE title
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; margin-bottom: 4px;">
+                <tr>
+                    <!-- Left: clinic / company details -->
+                    <td style="vertical-align: top; width: 55%;">
+                        <p style="margin: 0; font-size: 10px; font-weight: bold;">
+                            <t t-esc="o.company_id.name"/>
+                        </p>
+                        <p style="margin: 1px 0; font-size: 7.5px;">
+                            <t t-if="o.company_id.street"><t t-esc="o.company_id.street"/></t>
+                        </p>
+                        <p style="margin: 1px 0; font-size: 7.5px;">
+                            <t t-if="o.company_id.city"><t t-esc="o.company_id.city"/></t>
+                            <t t-if="o.company_id.city and o.company_id.country_id">, </t>
+                            <t t-if="o.company_id.country_id"><t t-esc="o.company_id.country_id.name"/></t>
+                        </p>
+                        <p style="margin: 1px 0; font-size: 7.5px;">
+                            <t t-if="o.company_id.phone"><t t-esc="o.company_id.phone"/></t>
+                        </p>
+                        <p style="margin: 1px 0; font-size: 7.5px;">
+                            <t t-if="o.company_id.email"><t t-esc="o.company_id.email"/></t>
+                        </p>
+                    </td>
+
+                    <!-- Right: INVOICE title + date/ref box -->
+                    <td style="vertical-align: top; width: 45%; text-align: right;">
+                        <p style="margin: 0 0 4px 0; font-size: 18px; font-weight: bold; letter-spacing: 1px;">INVOICE</p>
+                        <table width="100%" style="border-collapse: collapse; font-size: 7.5px;">
+                            <tr>
+                                <td style="border: 0.5px solid #555; padding: 2px 4px; font-weight: bold; white-space: nowrap;">DATE</td>
+                                <td style="border: 0.5px solid #555; padding: 2px 4px; min-width: 60px;">
+                                    <t t-if="o.invoice_date">
+                                        <span t-field="o.invoice_date" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: 0.5px solid #555; padding: 2px 4px; font-weight: bold; white-space: nowrap;">INVOICE NO</td>
+                                <td style="border: 0.5px solid #555; padding: 2px 4px;">
+                                    <t t-esc="o.name"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: 0.5px solid #555; padding: 2px 4px; font-weight: bold; white-space: nowrap;">CUST ID</td>
+                                <td style="border: 0.5px solid #555; padding: 2px 4px;">
+                                    <t t-if="o.partner_id.ref">
+                                        <t t-esc="o.partner_id.ref"/>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-esc="o.partner_id.name"/>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: 0.5px solid #555; padding: 2px 4px; font-weight: bold; white-space: nowrap;">DUE DATE</td>
+                                <td style="border: 0.5px solid #555; padding: 2px 4px;">
+                                    <t t-if="o.invoice_date_due">
+                                        <span t-field="o.invoice_date_due" t-options='{"widget": "date", "format": "dd/MM/yyyy"}'/>
+                                    </t>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 BILL TO
+                 ══════════════════════════════════════ -->
+            <div style="margin-bottom: 4px;">
+                <!-- Black bar label -->
+                <div style="background-color: #000; color: #fff; font-weight: bold; font-size: 8px; padding: 2px 4px; width: 55%; box-sizing: border-box;">
+                    BILL TO
+                </div>
+                <!-- Bill-to details — sourced from insurance claim if linked, else partner -->
+                <t t-set="claim" t-value="env['eyekei.insurance.claim'].sudo().search([('invoice_id','=',o.id)], limit=1)"/>
+                <t t-if="claim and claim.insurance_company_id">
+                    <t t-set="ins" t-value="claim.insurance_company_id"/>
+                    <p style="margin: 1px 0; font-size: 8px;"><t t-esc="ins.name"/></p>
+                    <t t-if="ins.address">
+                        <t t-foreach="(ins.address or '').split('\n')" t-as="addr_line">
+                            <t t-if="addr_line.strip()">
+                                <p style="margin: 1px 0; font-size: 8px;"><t t-esc="addr_line.strip()"/></p>
+                            </t>
+                        </t>
+                    </t>
+                    <t t-if="ins.phone">
+                        <p style="margin: 1px 0; font-size: 8px;"><t t-esc="ins.phone"/></p>
+                    </t>
+                </t>
+                <t t-else="">
+                    <t t-set="p" t-value="o.partner_id"/>
+                    <t t-if="p.name"><p style="margin: 1px 0; font-size: 8px;"><t t-esc="p.name"/></p></t>
+                    <t t-if="p.company_name"><p style="margin: 1px 0; font-size: 8px;"><t t-esc="p.company_name"/></p></t>
+                    <t t-if="p.street"><p style="margin: 1px 0; font-size: 8px;"><t t-esc="p.street"/></p></t>
+                    <t t-if="p.city"><p style="margin: 1px 0; font-size: 8px;"><t t-esc="p.city"/></p></t>
+                    <t t-if="p.phone"><p style="margin: 1px 0; font-size: 8px;"><t t-esc="p.phone"/></p></t>
+                </t>
+            </div>
+
+            <!-- ══════════════════════════════════════
+                 AMOUNT column header (right-aligned)
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; margin-bottom: 0;">
+                <tr>
+                    <td style="width: 65%;"></td>
+                    <td colspan="3" style="text-align: center; font-weight: bold; font-size: 8px; padding-bottom: 1px;">AMOUNT</td>
+                </tr>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 LINE ITEMS TABLE
+                 Columns: QTY | PARTICULARS | RATE | SHS | CTS
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; font-size: 8px; margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #000; color: #fff;">
+                        <th style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; width: 8%;">QTY</th>
+                        <th style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; width: 52%;">PARTICULARS</th>
+                        <th style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; width: 18%;">RATE</th>
+                        <th style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; width: 12%;">SHS</th>
+                        <th style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; width: 10%;">CTS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Actual invoice lines -->
+                    <t t-set="product_lines" t-value="o.invoice_line_ids.filtered(lambda l: l.display_type == 'product')"/>
+                    <t t-foreach="product_lines" t-as="line">
+                        <t t-set="unit_price" t-value="line.price_unit"/>
+                        <t t-set="shs" t-value="int(unit_price)"/>
+                        <t t-set="cts" t-value="round((unit_price - int(unit_price)) * 100)"/>
+                        <tr>
+                            <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center;">
+                                <t t-if="line.quantity == int(line.quantity)">
+                                    <t t-esc="int(line.quantity)"/>
+                                </t>
+                                <t t-else="">
+                                    <t t-esc="'%.2f' % line.quantity"/>
+                                </t>
+                            </td>
+                            <td style="border: 0.5px solid #555; padding: 2px 3px;">
+                                <t t-if="line.name">
+                                    <t t-esc="line.name"/>
+                                </t>
+                                <t t-else="">
+                                    <t t-esc="line.product_id.name"/>
+                                </t>
+                            </td>
+                            <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center;">
+                                <t t-esc="'%s' % '{:,.2f}'.format(unit_price)"/>
+                            </td>
+                            <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center;">
+                                <t t-esc="'%s' % '{:,}'.format(shs)"/>
+                            </td>
+                            <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center;">
+                                <t t-esc="'%02d' % cts"/>
+                            </td>
+                        </tr>
+                    </t>
+
+                    <!-- Pad to minimum 8 rows for consistent look -->
+                    <t t-if="len(product_lines) &lt; 8">
+                        <t t-foreach="range(8 - len(product_lines))" t-as="pad">
+                            <tr>
+                                <td style="border: 0.5px solid #555; padding: 2px 3px;">&#160;</td>
+                                <td style="border: 0.5px solid #555; padding: 2px 3px;">&#160;</td>
+                                <td style="border: 0.5px solid #555; padding: 2px 3px;">&#160;</td>
+                                <td style="border: 0.5px solid #555; padding: 2px 3px;">&#160;</td>
+                                <td style="border: 0.5px solid #555; padding: 2px 3px;">&#160;</td>
+                            </tr>
+                        </t>
+                    </t>
+                </tbody>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 OTHER COMMENTS + TOTALS ROW
+                 ══════════════════════════════════════ -->
+            <table width="100%" style="border-collapse: collapse; font-size: 8px; margin-bottom: 4px;">
+                <tr>
+                    <!-- OTHER COMMENTS black bar (left) -->
+                    <td style="background-color: #000; color: #fff; font-weight: bold; padding: 2px 4px; width: 65%; white-space: nowrap;">
+                        OTHER COMMENTS
+                    </td>
+                    <!-- Subtotal label + values -->
+                    <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; font-weight: bold; white-space: nowrap; width: 14%;">Subtotal</td>
+                    <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; width: 12%;">
+                        <t t-esc="'%s' % '{:,}'.format(int(o.amount_untaxed))"/>
+                    </td>
+                    <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; width: 9%;">
+                        <t t-esc="'%02d' % round((o.amount_untaxed - int(o.amount_untaxed)) * 100)"/>
+                    </td>
+                </tr>
+                <tr>
+                    <!-- Comments area (blank, spans 2 rows) -->
+                    <td rowspan="2" style="border: 0.5px solid #555; padding: 4px; vertical-align: top; height: 14px;">&#160;</td>
+                    <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; font-weight: bold; white-space: nowrap;">VAT</td>
+                    <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center;">
+                        <t t-esc="'%s' % '{:,}'.format(int(o.amount_tax))"/>
+                    </td>
+                    <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center;">
+                        <t t-esc="'%02d' % round((o.amount_tax - int(o.amount_tax)) * 100)"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; font-weight: bold; white-space: nowrap;">TOTAL</td>
+                    <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; font-weight: bold;">
+                        <t t-esc="'%s' % '{:,}'.format(int(o.amount_total))"/>
+                    </td>
+                    <td style="border: 0.5px solid #555; padding: 2px 3px; text-align: center; font-weight: bold;">
+                        <t t-esc="'%02d' % round((o.amount_total - int(o.amount_total)) * 100)"/>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- ══════════════════════════════════════
+                 FOOTER
+                 ══════════════════════════════════════ -->
+            <div style="text-align: center; font-size: 7.5px; margin-top: 4px;">
+                <p style="margin: 0;">Make all checks payable to</p>
+                <p style="margin: 1px 0; font-weight: bold; font-size: 8px;">
+                    <t t-esc="o.company_id.name"/>
+                </p>
+                <p style="margin: 3px 0 1px 0;">If you have any questions about this invoice, please contact</p>
+                <p style="margin: 0;">
+                    <t t-esc="o.company_id.name"/>
+                    <t t-if="o.company_id.phone">, <t t-esc="o.company_id.phone"/></t>
+                    <t t-if="o.company_id.email">, <t t-esc="o.company_id.email"/></t>
+                </p>
+                <p style="margin: 3px 0 0 0; font-weight: bold; font-style: italic; font-size: 8px;">
+                    Thank You For Your Business!
+                </p>
+            </div>
+
+        </div>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════
+         Main Template — renders two copies side-by-side
+         ═══════════════════════════════════════════════════ -->
+    <template id="report_proforma_invoice_document">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="o">
+                <!-- Suppress Odoo's default external layout header/footer
+                     so we control 100% of the page content ourselves -->
+                <div class="page" style="font-family: Arial, sans-serif; font-size: 9px; color: #111; width: 100%;">
+
+                    <!-- Two-copy wrapper: left and right blocks side-by-side,
+                         separated by a dashed vertical centre divider -->
+                    <table width="100%" style="border-collapse: collapse; width: 100%;">
+                        <tr>
+                            <!-- LEFT COPY -->
+                            <td style="width: 50%; vertical-align: top; padding-right: 6px; border-right: 1px dashed #888;">
+                                <t t-call="eyekei_eyewear.report_proforma_invoice_block">
+                                    <t t-set="o" t-value="o"/>
+                                </t>
+                            </td>
+                            <!-- RIGHT COPY (identical) -->
+                            <td style="width: 50%; vertical-align: top; padding-left: 6px;">
+                                <t t-call="eyekei_eyewear.report_proforma_invoice_block">
+                                    <t t-set="o" t-value="o"/>
+                                </t>
+                            </td>
+                        </tr>
+                    </table>
+
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>
