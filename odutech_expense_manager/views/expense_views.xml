@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- CATEGORY LIST VIEW -->
+    <record id="view_expense_category_list" model="ir.ui.view">
+        <field name="name">expense.category.list</field>
+        <field name="model">expense.category</field>
+        <field name="arch" type="xml">
+            <list string="Expense Categories" decoration-info="1">
+                <field name="sequence" widget="handle"/>
+                <field name="icon" widget="image" options="{'size': [32, 32]}" string=" "/>
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="total_amount" sum="Grand Total"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- CATEGORY FORM VIEW -->
+    <record id="view_expense_category_form" model="ir.ui.view">
+        <field name="name">expense.category.form</field>
+        <field name="model">expense.category</field>
+        <field name="arch" type="xml">
+            <form string="Expense Category">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name" placeholder="e.g. Travel, Groceries..."/></h1>
+                    </div>
+                    <group>
+                        <group string="Configuration">
+                            <field name="user_id"/>
+                            <field name="sequence"/>
+                            <field name="icon" widget="image" class="oe_avatar"/>
+                        </group>
+                        <group string="Statistics">
+                            <field name="total_amount" readonly="1" force_save="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Related Transactions" name="transactions">
+                            <field name="transaction_ids" readonly="1">
+                                <list>
+                                    <field name="type"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_expense_category" model="ir.actions.act_window">
+        <field name="name">Expense Categories</field>
+        <field name="res_model">expense.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new category to track your spending!
+            </p>
+        </field>
+    </record>
+    <!-- Transaction View -->
+    <record id="view_expense_transaction_list" model="ir.ui.view">
+        <field name="name">expense.transaction.list</field>
+        <field name="model">expense.transaction</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="transaction_code"/>
+                <field name="user_id"/>
+                <field name="date_creation"/>
+                <field name="type"/>
+                <field name="amount"/>
+                <field name="category_id"/>
+                <field name="user_id"/>
+                <field name="account_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Account View -->
+    <record id="view_expense_account_form" model="ir.ui.view">
+        <field name="name">expense.account.form</field>
+        <field name="model">expense.account</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="account_number"/>
+                        <field name="type"/>
+                        <field name="total_available"/>
+                        <field name="user_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_expense_account_listing" model="ir.ui.view">
+        <field name="name">expense.account.list</field>
+        <field name="model">expense.account</field>
+        <field name="arch" type="xml">
+            <list string="Expense Accounts">
+                <field name="name"/>
+                <field name="account_number"/>
+                <field name="currency_id"/>
+                <field name="type" widget="badge" decoration-success="type == 'income'" decoration-danger="type == 'expense'" decoration-warning="type == 'saving'"/>
+                <field name="total_available"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_expense_user_list" model="ir.ui.view">
+        <field name="name">expense.user.list</field>
+        <field name="model">expense.user</field>
+        <field name="arch" type="xml">
+            <list string="Users">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="dob"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- USER FORM VIEW -->
+    <record id="view_expense_user_form" model="ir.ui.view">
+        <field name="name">expense.user.form</field>
+        <field name="model">expense.user</field>
+        <field name="arch" type="xml">
+            <form string="User Profile">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_login_sessions" type="object" class="oe_stat_button" icon="fa-sign-in">
+                            <field string="Login Sessions" name="session_count" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group string="Basic Information">
+                            <field name="name" placeholder="e.g. John Doe"/>
+                            <field name="dob"/>
+                            <field name="password" invisible="1"/>
+                            <field name="expiration_date" invisible="1"/>
+                            <field name="verification_code" invisible="1"/>
+                             <field name="verification_expiry"/>
+                        </group>
+                        <group string="Contact Details">
+                            <field name="email" widget="email"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="access_token" invisible="1"/>
+                            <field name="reset_password_token" invisible="1"/>
+                             <field name="is_verified"/>
+                        </group>
+                    </group>
+                    <notebook>
+                    <page string="Login History" name="login_history">
+                        <!-- We use a One2many field to embed the sub-list directly inside the form -->
+                        <field name="session_ids" readonly="1">
+                            <list string="Active Logins">
+                                <field name="login_time"/>
+                                <field name="ip_address"/>
+                                <field name="place_of_login"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- USER ACTION -->
+    <record id="action_expense_user" model="ir.actions.act_window">
+        <field name="name">Users</field>
+        <field name="res_model">expense.user</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first expense user!
+            </p>
+        </field>
+    </record>
+    <!-- Actions -->
+    <record id="action_expense_transaction" model="ir.actions.act_window">
+        <field name="name">Transactions</field>
+        <field name="res_model">expense.transaction</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_expense_category" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">expense.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_expense_accounts" model="ir.actions.act_window">
+        <field name="name">Expense Accounts</field>
+        <field name="res_model">expense.account</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

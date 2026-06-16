@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_expense_user,expense.user,model_expense_user,base.group_user,1,1,1,0
+access_expense_category,expense.category,model_expense_category,base.group_user,1,1,1,0
+access_expense_account,expense.account,model_expense_account,base.group_user,1,1,1,0
+access_expense_transaction,expense.transaction,model_expense_transaction,base.group_user,1,1,1,0
+access_expense_session_user,access.expense.session.user,model_expense_user_sessions,base.group_user,1,0,1,0
